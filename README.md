@@ -5,19 +5,19 @@ It includes MiniZinc models and Python helpers for searching impossible differen
 
 ### 2. Repository Structure
 .  
-├─ Phase1/                      # Search impossible differential distinguishers (coarse search)  
+├─ Phase1/ &emsp;                     # Search impossible differential distinguishers (coarse search)  
 │  ├─ SAND_64_impossible_differentials.mzn  
 │  └─ SAND_128_impossible_differentials.mzn  
 │  
-├─ Phase2/                      # Search with (i, j) constraints (refined search)  
+├─ Phase2/ &emsp;                     # Search with (i, j) constraints (refined search)  
 │  ├─ SAND_64_subprocess_with_i_and_j.py  
 │  ├─ SAND_64_with_i_and_j.mzn  
 │  ├─ SAND_128_subprocess_with_i_and_j.py  
 │  └─ SAND_128_with_i_and_j.mzn  
 │  
-└─ KeyRecovery/                 # Distinguishers for key-recovery  
-   ├─ SAND_64_Key_Recovery.mzn  
-   └─ SAND_128_Key_Recovery.mzn  
+└─ KeyRecovery/ &emsp;                # Distinguishers for key-recovery  
+&emsp;├─ SAND_64_Key_Recovery.mzn  
+&emsp;└─ SAND_128_Key_Recovery.mzn  
 
 If you keep all files in a single folder, you can omit the directory names above. 
 The grouping is only for readability.
