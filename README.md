@@ -48,6 +48,9 @@ bash
 python3 SAND_64_subprocess_with_i_and_j.py  
 python3 SAND_128_subprocess_with_i_and_j.py  
 
+Options: `--workers`, `--parallel`, `--solver`, `--minizinc`, `--time-limit` (seconds), `--outdir`.
+Each (i, j) is recorded as SAT (impossible differential found), UNSAT, UNKNOWN or ERROR in `results_summary.csv`.
+
 **Optional**: You may also run the MiniZinc models directly without the Python wrappers:
 bash   
 minizinc SAND_64_with_i_and_j.mzn  
@@ -62,6 +65,13 @@ Example (command line):
 bash  
 minizinc SAND_64_Key_Recovery.mzn  
 minizinc SAND_128_Key_Recovery.mzn  
+
+Defaults: r_in = 3, r_out = 3 for SAND64 (17 rounds) and r_in = 4, r_out = 3 for SAND128 (21 rounds).
+The output lists c_in, c_out, k_in, k_out, |Δin|, |Δout| and the data/time/memory estimate for N = N_min.
+It also enumerates, for 2^D plaintexts (D = ⌈log2 C_N⌉ … 2n), the number of C_N sets S = ⌊2^D / C_N⌋ and the time complexity
+T = 2^D + S·(N_min + 2^|k_in ∪ k_out|)·C_E' + 2^|K|·(1/2)^S; `-D data_log2=<D>` marks the available data (default 63 for SAND64, 125 for SAND128).
+Options: `-D obj_mode=0` (minimize |k_in ∪ k_out|, default), `1` (then c_in + c_out, then maximize |Δin| + |Δout|), `2` (minimize c_in + c_out);
+`-D unknown_bit_position_i=<i> -D unknown_bit_position_j=<j>` applies the Phase 2 unknown seeding to the distinguisher.
 
 ### 5. Notes
 * Output formats and runtime depend on your solver and machine configuration.
