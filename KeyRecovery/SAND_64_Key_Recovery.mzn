@@ -28,13 +28,21 @@ include "globals.mzn";
 %   round r, bit b : the propagated part P_n(dG) is unknown but the target
 %                    difference bit is FIXED (0 or 1).
 % Subkey rule (one nibble = 4 bits of sk_r):
-%   input side  : sk_r, 0 <= r <= r_in-2, nibble w is needed iff nibble w of
-%                 Delta x_{r+1} is active (its G-box input must be known).
-%                 sk_{r_in-1} is never needed (Delta x_{r_in} is only a
-%                 difference to be checked).
-%   output side : sk_t, t = r_in + r_delta + r (1 <= r <= r_out-1), nibble w
-%                 is needed iff nibble w of Delta y_t (= Delta x_{t-1}) is
-%                 active.  sk_{r_in+r_delta} is never needed.
+%   A subkey nibble is guessed iff the VALUE of the state nibble it is xored
+%   into must be computed.  The value of x_r[w] is needed
+%     - if nibble w of Delta x_r is active in an appended round (its G-box
+%       output difference must be computed), or
+%     - recursively, if it feeds a needed nibble: output column c of P_n
+%       receives G0 column P[c] (input column P[c]) and G1 column P[c]
+%       (input column P[c]+1 mod word), so x_{r+1}[c] needs x_r[P[c]],
+%       x_r[P[c]+1] and y_r[c] = x_{r-1}[c], and sk_r[c].
+%   input side  : x_0, y_0 are known (plaintext); x_r[c] for r >= 1 needs
+%                 sk_{r-1}[c].  sk_{r_in-1} is never needed.
+%   output side : x_{R-1} = y_R is known (ciphertext); for t <= R-2,
+%                 x_t = y_{t+1} = P_n(G(x_{t+1})) xor x_{t+2} xor sk_{t+1}
+%                 needs sk_{t+1}[c], x_{t+1}[P[c]], x_{t+1}[P[c]+1] and
+%                 x_{t+2}[c].  sk_{r_in+r_delta} is never needed.
+% (Columns are indexed as in the model: w = 0 is the leftmost (MSB) column.)
 %
 % Objective (-D obj_mode=<0|1|2>, default 0):
 %   0 : minimise |k_in u k_out|                       (paper, Sect. 7.3)
@@ -207,9 +215,20 @@ constraint forall(r in 0..r_in-1, i in 0..3, w in 0..word-1)(
   c_in[r, i, w] = bool2int(YL_KR[r, i, w] = -1 /\ XL_KR[r+1, i, w] != -1)
 );
 
-% k_in: sk_r is needed where Delta x_{r+1} is active, 0 <= r <= r_in-2
+% need_in[r, w]: the value of x_r[w] must be computed (see header)
+% G-box inputs feeding output column c of P_n: columns P[c] and P[c]+1
+function set of int: feed(int: c) = {P[c], (P[c] + 1) mod word};
+array[0..r_in-1, 0..word-1] of var bool: need_in;
 constraint forall(r in 0..r_in-1, w in 0..word-1)(
-  k_in[r, w] = if r <= r_in-2 then bool2int(active(XL_KR, r+1, w)) else 0 endif
+  need_in[r, w] = (
+       (r >= 1 /\ active(XL_KR, r, w))
+    \/ exists(c in 0..word-1 where w in feed(c) /\ r+1 <= r_in-1)(need_in[r+1, c])
+    \/ (r+2 <= r_in-1 /\ need_in[min(r+2, r_in-1), w]))
+);
+
+% k_in: sk_r[w] is needed iff the value of x_{r+1}[w] is needed, 0 <= r <= r_in-2
+constraint forall(r in 0..r_in-1, w in 0..word-1)(
+  k_in[r, w] = if r <= r_in-2 then bool2int(need_in[min(r+1, r_in-1), w]) else 0 endif
 );
 
 % Output side: forward from the distinguisher output to the ciphertext -----
@@ -234,9 +253,19 @@ constraint forall(r in 0..r_out-1, i in 0..3, w in 0..word-1)(
   c_out[r, i, w] = bool2int(XU_KR[r+1, i, w] = -1 /\ YU_KR[r, i, w] != -1)
 );
 
-% k_out: sk_t (t = r_in+rounds+r) is needed where Delta y_t is active, r >= 1
+% need_out[r, w]: the value of x_t[w], t = r_in+rounds+r, must be computed
+array[0..r_out-1, 0..word-1] of var bool: need_out;
 constraint forall(r in 0..r_out-1, w in 0..word-1)(
-  k_out[r, w] = if r >= 1 then bool2int(active(YU_KR, r, w)) else 0 endif
+  need_out[r, w] = (
+       active(XU_KR, r, w)
+    \/ exists(c in 0..word-1 where w in feed(c) /\ r-1 >= 0)(need_out[max(r-1, 0), c])
+    \/ (r-2 >= 0 /\ need_out[max(r-2, 0), w]))
+);
+
+% k_out: sk_t (t = r_in+rounds+r, 1 <= r <= r_out-1) is needed iff the value
+% of x_{t-1}[w] is needed
+constraint forall(r in 0..r_out-1, w in 0..word-1)(
+  k_out[r, w] = if r >= 1 then bool2int(need_out[max(r-1, 0), w]) else 0 endif
 );
 
 % Summary quantities -------------------------------------------------------
