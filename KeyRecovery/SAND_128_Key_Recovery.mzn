@@ -441,8 +441,8 @@ output [
     float: ce  = int2float(r_in + r_out) / int2float(r_in + rounds + r_out);   % C_E'
     float: lM  = int2float(c) + log2(int2float(B) * 4.0 / 8.0);
     int: D0    = ceil(lCN);
-    % log2 S = floor(D - log2 C_N) (S = number of C_N sets, a power of two)
-    array[int] of float: lS = [int2float(floor(int2float(d) - lCN)) | d in D0..B];
+    % S = floor(2^(D - log2 C_N)) (number of C_N sets); lS = log2 S
+    array[int] of float: lS = [log2(int2float(floor(pow(2.0, int2float(d) - lCN)))) | d in D0..B];
   } in
   "log2 N_min = " ++ show(c) ++ "\n" ++
   "log2 C_N (data for one set) = " ++ format(0, 2, lCN) ++ "\n" ++
@@ -450,7 +450,7 @@ output [
   "log2 M (memory, bytes; N_min x 2n x 4 / 8) = " ++ format(0, 2, lM) ++ "\n" ++
   "\nNumber of C_N sets S and time T for 2^D plaintexts (T in R_atk-round encryptions):\n" ++
   "   D   log2 S   log2 T\n" ++
-  concat([ format(4, d) ++ format(9, 0, lS[d - D0 + 1]) ++
+  concat([ format(4, d) ++ format(9, 2, lS[d - D0 + 1]) ++
            format(9, 2, log2(T_of(int2float(d), lS[d - D0 + 1], c, k, ce))) ++
            (if d = DATA then "   <- data_log2" else "" endif) ++ "\n"
          | d in D0..B ]) ++

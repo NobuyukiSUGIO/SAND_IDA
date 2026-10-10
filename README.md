@@ -17,7 +17,9 @@ It includes MiniZinc models and Python helpers for searching impossible differen
 │  
 └─ KeyRecovery/ &emsp;                # Distinguishers for key-recovery  
 &emsp;├─ SAND_64_Key_Recovery.mzn  
-&emsp;└─ SAND_128_Key_Recovery.mzn  
+&emsp;├─ SAND_128_Key_Recovery.mzn  
+&emsp;├─ SAND_time_objective.mzn  
+&emsp;└─ make_time_objective_instances.py  
 
 If you keep all files in a single folder, you can omit the directory names above. 
 The grouping is only for readability.
@@ -72,6 +74,13 @@ It also enumerates, for 2^D plaintexts (D = ⌈log2 C_N⌉ … 2n), the number o
 T = 2^D + S·(N_min + 2^|k_in ∪ k_out|)·C_E' + 2^|K|·(1/2)^S; `-D data_log2=<D>` marks the available data (default 63 for SAND64, 125 for SAND128).
 Options: `-D obj_mode=0` (minimize |k_in ∪ k_out|, default), `1` (then c_in + c_out, then maximize |Δin| + |Δout|), `2` (minimize c_in + c_out);
 `-D unknown_bit_position_i=<i> -D unknown_bit_position_j=<j>` applies the Phase 2 unknown seeding to the distinguisher.
+
+**Time-oriented objective (Sect. 10.2, Table 8).** `SAND_time_objective.mzn` minimizes the time complexity
+T = 2^D + S·(N_min + 2^|k_in ∪ k_out|)·C'_E + 2^|K|·(1/2)^S with S = ⌊2^D / C_N⌋, treating the data 2^D as a variable.
+Since T is non-linear, the largest of its four terms is minimized on a log2 scale; this approximates T within a factor of four
+and does not guarantee that T itself is minimized. |k_in ∪ k_out| is the number of guessed subkey bits (an upper bound on the
+rank under the linear key schedule). Generate the instances for all round allocations with
+`python3 make_time_objective_instances.py <outdir>` and run, e.g., `minizinc --solver cp-sat --parallel 2 t128_43.mzn`.
 
 ### 5. Notes
 * Output formats and runtime depend on your solver and machine configuration.
