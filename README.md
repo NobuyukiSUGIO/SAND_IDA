@@ -18,6 +18,8 @@ It includes MiniZinc models and Python helpers for searching impossible differen
 └─ KeyRecovery/ &emsp;                # Distinguishers for key-recovery  
 &emsp;├─ SAND_64_Key_Recovery.mzn  
 &emsp;├─ SAND_128_Key_Recovery.mzn  
+&emsp;├─ SAND_64_fix_Fig7.mzn  
+&emsp;├─ SAND_128_fix_Fig8.mzn  
 &emsp;├─ SAND_time_objective.mzn  
 &emsp;└─ make_time_objective_instances.py  
 
@@ -72,8 +74,13 @@ Defaults: r_in = 3, r_out = 3 for SAND64 (17 rounds) and r_in = 4, r_out = 3 for
 The output lists c_in, c_out, k_in, k_out, |Δin|, |Δout| and the data/time/memory estimate for N = N_min.
 It also enumerates, for 2^D plaintexts (D = ⌈log2 C_N⌉ … 2n), the number of C_N sets S = ⌊2^D / C_N⌋ and the time complexity
 T = 2^D + S·(N_min + 2^|k_in ∪ k_out|)·C_E' + 2^|K|·(1/2)^S; `-D data_log2=<D>` marks the available data (default 63 for SAND64, 125 for SAND128).
-Options: `-D obj_mode=0` (minimize |k_in ∪ k_out|, default), `1` (then c_in + c_out, then maximize |Δin| + |Δout|), `2` (minimize c_in + c_out);
+Options: `-D obj_mode=1` (minimize |k_in ∪ k_out|, then c_in + c_out, then maximize |Δin| + |Δout|; default, used for Sect. 9), `0` (minimize |k_in ∪ k_out| only), `2` (minimize c_in + c_out);
 `-D unknown_bit_position_i=<i> -D unknown_bit_position_j=<j>` applies the Phase 2 unknown seeding to the distinguisher.
+Several patterns can attain the same optimum (e.g., with the active columns at different positions), and the solver returns one of them;
+with the default objective it returns an attack with the same c_in, c_out, |k_in ∪ k_out|, |Δin|, |Δout| and complexities as in Sect. 9.
+The distinguishers of Figs. 7 and 8 can be fixed with
+`minizinc --solver cp-sat SAND_64_Key_Recovery.mzn SAND_64_fix_Fig7.mzn` and
+`minizinc --solver cp-sat SAND_128_Key_Recovery.mzn SAND_128_fix_Fig8.mzn`.
 
 **Time-oriented objective (Sect. 10.2, Table 8).** `SAND_time_objective.mzn` minimizes the time complexity
 T = 2^D + S·(N_min + 2^|k_in ∪ k_out|)·C'_E + 2^|K|·(1/2)^S with S = ⌊2^D / C_N⌋, treating the data 2^D as a variable.

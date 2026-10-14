@@ -44,13 +44,18 @@ include "globals.mzn";
 %                 x_{t+2}[c].  sk_{r_in+r_delta} is never needed.
 % (Columns are indexed as in the model: w = 0 is the leftmost (MSB) column.)
 %
-% Objective (-D obj_mode=<0|1|2>, default 0):
-%   0 : minimise |k_in u k_out|                       (paper, Sect. 7.3)
+% Objective (-D obj_mode=<0|1|2>, default 1):
+%   0 : minimise |k_in u k_out|
 %   1 : minimise |k_in u k_out|, then c_in + c_out, then maximise
-%       |Delta_in| + |Delta_out| (lexicographic; smaller data complexity)
+%       |Delta_in| + |Delta_out| (lexicographic; smaller data complexity;
+%       paper, Sects. 7.3 and 9)
 %   2 : minimise c_in + c_out
 % The objective is only a surrogate; candidates must be evaluated with the
 % complete formulas (printed at the end of the output).
+% Several patterns can attain the same optimum (e.g., patterns that differ in
+% the position of the active columns), and the solver returns one of them.
+% The distinguisher used in the paper can be fixed with
+% SAND_64_fix_Fig7.mzn (Fig. 7).
 %
 % Optional unknown seeding (Phase 2, Sect. 5.3): set
 %   -D unknown_bit_position_i=<0..2n-1> / -D unknown_bit_position_j=<0..2n-1>
@@ -68,11 +73,11 @@ int: r_out = 3;     % rounds appended after the distinguisher
 int: key_size = 128;  % |K|
 
 % Optional parameters, settable with -D (e.g. -D obj_mode=1)
-opt int: obj_mode;                % default 0, see header
+opt int: obj_mode;                % default 1, see header
 opt int: unknown_bit_position_i;  % default: no seeding, else 0 .. 2n-1
 opt int: unknown_bit_position_j;  % default: no seeding, else 0 .. 2n-1
 opt int: data_log2;               % available plaintexts 2^data_log2 (default 63, paper)
-int: OBJ_MODE = if occurs(obj_mode) then deopt(obj_mode) else 0 endif;
+int: OBJ_MODE = if occurs(obj_mode) then deopt(obj_mode) else 1 endif;
 int: SEED_I = if occurs(unknown_bit_position_i) then deopt(unknown_bit_position_i) else -1 endif;
 int: SEED_J = if occurs(unknown_bit_position_j) then deopt(unknown_bit_position_j) else -1 endif;
 int: DATA = if occurs(data_log2) then deopt(data_log2) else 63 endif;
