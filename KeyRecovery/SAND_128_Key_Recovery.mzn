@@ -283,9 +283,9 @@ var 0..2*n: D_OUT = sum(i in 0..3, w in 0..word-1)(bool2int(XU_KR[r_out, i, w] =
 
 % Data complexity C_N of Eq. (1) with N = N_min = 2^(c_in + c_out) must stay
 % below the full codebook 2^(2n).  In log2 and multiplied by 2:
-%   max(min(c + 2n+1 - |D_in|, c + 2n+1 - |D_out|), 2(c + 2n+1 - |D_in| - |D_out|)) < 2(2n)
+%   max(c + 2n+1 - |D_out|, 2(c + 2n+1 - |D_in| - |D_out|)) < 2(2n)   (chosen plaintexts)
 constraint let { var int: c = C_IN + C_OUT } in
-  max(min(c + 2*n + 1 - D_IN, c + 2*n + 1 - D_OUT),
+  max(c + 2*n + 1 - D_OUT,
       2 * (c + 2*n + 1 - D_IN - D_OUT)) < 4*n;
 %=============================================================================
 
@@ -441,7 +441,7 @@ output [
     int: B   = 2*n;                       % block size
     int: c   = fix(C_IN) + fix(C_OUT);
     int: k   = fix(K_IN) + fix(K_OUT);
-    float: lCN = max(min(int2float(c + B + 1 - fix(D_IN)) / 2.0, int2float(c + B + 1 - fix(D_OUT)) / 2.0),
+    float: lCN = max(int2float(c + B + 1 - fix(D_OUT)) / 2.0,                  % chosen plaintexts
                      int2float(c + B + 1 - fix(D_IN) - fix(D_OUT)));
     float: ce  = int2float(r_in + r_out) / int2float(r_in + rounds + r_out);   % C_E'
     float: lM  = int2float(c) + log2(int2float(B) * 4.0 / 8.0);

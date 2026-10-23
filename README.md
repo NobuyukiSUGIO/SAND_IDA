@@ -73,7 +73,7 @@ minizinc SAND_128_Key_Recovery.mzn
 Defaults: r_in = 3, r_out = 3 for SAND64 (17 rounds) and r_in = 4, r_out = 3 for SAND128 (21 rounds).
 The output lists c_in, c_out, k_in, k_out, |Δin|, |Δout| and the data/time/memory estimate for N = N_min.
 It also enumerates, for 2^D plaintexts (D = ⌈log2 C_N⌉ … 2n), the number of C_N sets S = ⌊2^D / C_N⌋ and the time complexity
-T = 2^D + S·(N_min + 2^|k_in ∪ k_out|)·C_E' + 2^|K|·(1/2)^S; `-D data_log2=<D>` marks the available data (default 63 for SAND64, 125 for SAND128).
+T = 2^D + S·(N_min + 2^|k_in ∪ k_out|)·C_E' + 2^|K|·(1/2)^S; C_N is Eq. (1) for chosen plaintexts, i.e., the first term uses |Δout|; `-D data_log2=<D>` marks the available data (default 63 for SAND64, 125 for SAND128).
 Options: `-D obj_mode=1` (minimize |k_in ∪ k_out|, then c_in + c_out, then maximize |Δin| + |Δout|; default, used for Sect. 9), `0` (minimize |k_in ∪ k_out| only), `2` (minimize c_in + c_out);
 `-D unknown_bit_position_i=<i> -D unknown_bit_position_j=<j>` applies the Phase 2 unknown seeding to the distinguisher.
 Several patterns can attain the same optimum (e.g., with the active columns at different positions), and the solver returns one of them;

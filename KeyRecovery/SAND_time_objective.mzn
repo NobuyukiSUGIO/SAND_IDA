@@ -7,7 +7,7 @@
 % e.g. with make_variants.py.  For SAND64 add "constraint DD <= 63;".
 %
 % Variables: the pattern of the model and the amount of data 2^DD.
-%   CN2 = 2 * log2 C_N  (Eq. (1), integer)
+%   CN2 = 2 * log2 C_N  (Eq. (1) for chosen plaintexts: |Delta| = |D_out|, integer)
 %   S   = floor(2^DD / C_N) = floor(2^((2*DD - CN2)/2))      (number of sets)
 %   T   = 2^DD + S*(N_min + 2^|k|)*C'_E + 2^|K|*(1/2)^S
 % The solver minimizes the largest of the four terms of T on a log2 scale
@@ -16,7 +16,7 @@
 % |k| is the number of guessed subkey bits K_IN + K_OUT, an upper bound on
 % the number of linearly independent key bits under the key schedule.
 %==============================================================================
-var int: CN2 = max(min(C_IN + C_OUT + 2*n + 1 - D_IN, C_IN + C_OUT + 2*n + 1 - D_OUT),
+var int: CN2 = max(C_IN + C_OUT + 2*n + 1 - D_OUT,
                    2 * (C_IN + C_OUT + 2*n + 1 - D_IN - D_OUT));
 var 1..2*n: DD;
 constraint CN2 <= 2*DD;
